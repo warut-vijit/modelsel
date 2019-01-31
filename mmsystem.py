@@ -1,7 +1,6 @@
 # Implements shooting method for Michaelis-Menten dynamics
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 class DynamicsModel(object):
@@ -10,16 +9,29 @@ class DynamicsModel(object):
         self.state = np.zeros(n_vars)
         self.velocity = np.zeros(n_vars)
 
-    def run(self, state, velocity, delta=0.001, steps=100):
-        states = [state.copy()]
-        velocities = [velocity]
+    # rolls out a trajectory from optional initial condition
+    # inputs:
+    #     state: np.array(n_vars)    - initial states
+    #     velocity: np.array(n_vars) - initial time derivative
+    #     delta: float               - time difference between steps
+    #     steps: int                 - number of steps to roll out
+    # output:
+    #     np.array(steps, n_vars), np.array(steps, n_vars)
+    #     states and velocities for each simulated timestep
+    def run(self, state=None, velocity=None, delta=0.001, steps=100):
+        if state is None:
+            state = np.random.random(self.n_vars)
+        if velocity is None:
+            velocity = np.random.random(self.n_vars)
+        states = []
+        velocities = []
         self.state = state
         self.velocity = velocity
         for i in range(steps):
             self.velocity = self.get_vel()
-            self.state += self.velocity * delta
             states.append(self.state.copy())
             velocities.append(self.velocity.copy())
+            self.state += self.velocity * delta
         return np.vstack(states), np.vstack(velocities)
 
 
@@ -71,8 +83,9 @@ class Goldbeter_1995(DynamicsModel):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     model = Goldbeter_1995()
-    states, velocities = model.run(state=np.random.random(5) * 3, velocity=np.random.random(5), delta=0.1, steps=1000)
+    states, velocities = model.run(delta=0.1, steps=1000)
     for i in range(states.shape[1]):
         plt.plot(states[:,i], label="X {}".format(i+1))
     plt.legend()
